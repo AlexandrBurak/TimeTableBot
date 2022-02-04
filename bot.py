@@ -4,7 +4,7 @@ import os
 
 from dotenv import load_dotenv
 from telegram import Bot, ReplyKeyboardMarkup
-from telegram.ext import CommandHandler, Updater
+from telegram.ext import CommandHandler, MessageHandler, Updater, Filters
 from telegram.error import BadRequest
 
 class EnvironVarException(Exception):
@@ -18,6 +18,10 @@ logging.basicConfig(
 load_dotenv()
 
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
+
+TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
+
+bot = Bot(token=TELEGRAM_TOKEN)
 
 if TELEGRAM_TOKEN is None:
         logging.critical('TELEGRAM_TOKEN отсутствует!')
@@ -43,7 +47,17 @@ def wake_up(update, context):
                              reply_markup=button)
     logging.info(f'Сообщение отправлено:\n{text}')
 
-def next_couple(update, context):
+def text_msg(update, context):
+    """Another text"""
+    chat = update.effective_chat
+    text='Не дури головы!'
+    button = ReplyKeyboardMarkup([['/nextpairs']])
+    context.bot.send_message(chat_id=chat.id, 
+                             text=text,
+                             reply_markup=button)
+    logging.info(f'Сообщение отправлено:\n{text}')
+
+def get_info():
     moment = dt.datetime.now()
     message = ''
     if int(moment.strftime("%H")) < 14:
@@ -52,6 +66,10 @@ def next_couple(update, context):
     else:
         day = (moment + dt.timedelta(days=1)).strftime("%A")
         message = DATABASE.get(day)
+    return message
+
+def next_couple(update, context):
+    message = get_info()
     chat = update.effective_chat
     button = ReplyKeyboardMarkup([['/nextpairs']])
     try:
@@ -69,6 +87,7 @@ def main():
     updater = Updater(token=TELEGRAM_TOKEN)
     updater.dispatcher.add_handler(CommandHandler('start', wake_up))
     updater.dispatcher.add_handler(CommandHandler('nextpairs', next_couple))
+    updater.dispatcher.add_handler(MessageHandler(Filters.text, text_msg))
     updater.start_polling()
     updater.idle()
 
