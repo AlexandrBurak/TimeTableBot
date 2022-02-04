@@ -46,7 +46,7 @@ def wake_up(update, context):
 def next_couple(update, context):
     moment = dt.datetime.now()
     message = ''
-    if int(moment.strftime("%H")) < 17:
+    if int(moment.strftime("%H")) < 14:
         day = moment.strftime("%A")
         message = DATABASE.get(day)
     else:
