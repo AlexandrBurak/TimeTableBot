@@ -3,7 +3,7 @@ import logging
 import os
 
 from dotenv import load_dotenv
-from telegram import Bot, ReplyKeyboardMarkup
+from telegram import ReplyKeyboardMarkup
 from telegram.ext import CommandHandler, MessageHandler, Updater, Filters
 from telegram.error import BadRequest
 
@@ -18,10 +18,6 @@ logging.basicConfig(
 load_dotenv()
 
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
-
-TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
-
-bot = Bot(token=TELEGRAM_TOKEN)
 
 if TELEGRAM_TOKEN is None:
         logging.critical('TELEGRAM_TOKEN отсутствует!')
