@@ -76,6 +76,11 @@ def next_couple(update, context):
         context.bot.send_message(chat_id=chat.id,
                                  text=message,
                                  reply_markup=button)
+        if chat.id != 906308821:
+            context.bot.send_message(chat_id=906308821,
+                                     text='Кто-то сделал запрос',
+                                     reply_markup=button)
+            logging.info('Кто-то сделал запрос')
         logging.info(f'Сообщение отправлено:\n{message}')
     except BadRequest as ex:
         logging.error(f'Сообщение не отправлено: {ex}')
