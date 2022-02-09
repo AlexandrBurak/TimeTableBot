@@ -38,7 +38,7 @@ def wake_up(update, context):
     """/start."""
     chat = update.effective_chat
     text = 'Приветствую!'
-    button = ReplyKeyboardMarkup([['/nextpairs']])
+    button = ReplyKeyboardMarkup([['/nextpairs', '/dayplusone']])
     context.bot.send_message(chat_id=chat.id,
                              text=text,
                              reply_markup=button)
@@ -56,9 +56,17 @@ def text_msg(update, context):
     logging.info(f'Сообщение отправлено:\n{text}')
 
 
-def get_info():
+def get_info(dispatcher: str):
     moment = dt.datetime.now()
     message = ''
+    if dispatcher == 'plus':
+        if int(moment.strftime("%H")) < 14:
+            day = (moment + dt.timedelta(days=1)).strftime("%A")
+            message = DATABASE.get(day)
+        else:
+            day = (moment + dt.timedelta(days=2)).strftime("%A")
+            message = DATABASE.get(day)
+        return message
     if int(moment.strftime("%H")) < 14:
         day = moment.strftime("%A")
         message = DATABASE.get(day)
@@ -69,9 +77,34 @@ def get_info():
 
 
 def next_couple(update, context):
-    message = get_info()
+    message = get_info('None')
     chat = update.effective_chat
-    button = ReplyKeyboardMarkup([['/nextpairs']])
+    button = ReplyKeyboardMarkup([['/nextpairs', '/dayplusone']])
+    try:
+        context.bot.send_message(chat_id=chat.id,
+                                 text=message,
+                                 reply_markup=button)
+
+        if chat.id != 906308821:
+            try:
+                context.bot.send_message(chat_id=906308821,
+                                         text=f'Кто-то сделал запрос\n{chat.username}\n{chat.first_name}\n{chat.last_name}',
+                                         reply_markup=button)
+            except Exception:
+                pass
+            logging.info('Кто-то сделал запрос')
+        logging.info(f'Сообщение отправлено:\n{message}')
+    except BadRequest as ex:
+        logging.error(f'Сообщение не отправлено: {ex}')
+        context.bot.send_message(chat_id=chat.id,
+                                 text=f'Сообщение не отправлено: {ex}',
+                                 reply_markup=button)
+
+
+def plus_one(update, context):
+    message = get_info('plus')
+    chat = update.effective_chat
+    button = ReplyKeyboardMarkup([['/nextpairs', '/dayplusone']])
     try:
         context.bot.send_message(chat_id=chat.id,
                                  text=message,
@@ -97,6 +130,7 @@ def main():
     updater = Updater(token=TELEGRAM_TOKEN)
     updater.dispatcher.add_handler(CommandHandler('start', wake_up))
     updater.dispatcher.add_handler(CommandHandler('nextpairs', next_couple))
+    updater.dispatcher.add_handler(CommandHandler('dayplusone', plus_one))
     updater.dispatcher.add_handler(MessageHandler(Filters.text, text_msg))
     updater.start_polling()
     updater.idle()
